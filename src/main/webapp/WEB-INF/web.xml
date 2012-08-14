@@ -1,0 +1,68 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+<web-app>
+	<display-name>Report System</display-name>
+	<filter>
+		<filter-name>sitemesh</filter-name>
+		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>sitemesh</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>GB2312</param-value>
+		</init-param>
+	</filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+	<servlet>
+		<servlet-name>DailyRevenueChartServlet</servlet-name>
+		<display-name>DailyRevenueChartServlet</display-name>
+		<description></description>
+		<servlet-class> com.chinarewards.report.chart.DailyRevenueChartServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ReportServletForMemberShop</servlet-name>
+		<display-name>ReportServletForMemberShop</display-name>
+		<description>ReportServletForMemberShop</description>
+		<servlet-class>
+			com.chinarewards.report.servlet.ReportServletForMemberShop</servlet-class>
+	</servlet>
+	<servlet>
+          <servlet-name>DisplayChart</servlet-name>
+          <servlet-class>org.jfree.chart.servlet.DisplayChart</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>ReportServletForMemberShop</servlet-name>
+		<url-pattern>/report.html</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DailyRevenueChartServlet</servlet-name>
+		<url-pattern>/DailyRevenueChartServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+        <servlet-name>DisplayChart</servlet-name>
+        <url-pattern>/servlet/DisplayChart</url-pattern>
+	</servlet-mapping>
+	<jsp-config>
+		<taglib>
+			<taglib-uri>/report-tags</taglib-uri>
+			<taglib-location>/META-INF/report-tags.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+	<session-config>
+		<session-timeout>15</session-timeout>
+	</session-config>
+</web-app>

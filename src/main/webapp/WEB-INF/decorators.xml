@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/decorators">
+	<decorator name="main2" page="main2.jsp">
+		<pattern>/coastalCity201207/detailCountCondition20120726.jsp</pattern>
+	</decorator>
+	<decorator name="main3" page="main3.jsp">
+		<pattern>/coastalCity201207/detailCountResult20120726.jsp</pattern>
+		<pattern>/coastalCity201207/empty.jsp</pattern>
+	</decorator>
+	<decorator name="main" page="main.jsp">
+		<pattern>/index.jsp</pattern>
+		<pattern>/generalreportmenu.jsp</pattern>
+		<pattern>/itreportmenu.jsp</pattern>
+		<pattern>/coastalCity201207.jsp</pattern>
+	</decorator>
+	<decorator name="main4" page="main4.jsp">
+		<pattern>/login.jsp</pattern>
+	</decorator>
+	<decorator name="main1" page="main1.jsp">
+		<pattern>/*</pattern>
+	</decorator>
+	
+
+</decorators>

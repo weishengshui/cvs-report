@@ -1,5 +1,6 @@
 package com.chinarewards.report.user;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,26 +58,30 @@ public class SysUsers {
 		UserLimits adidaslimits = new UserLimits();
 		adidaslimits.setAccessPage("/itreportmenu.jsp");
 		adidas.setLimits(itlimits);
-		
+
 		users.add(adidas);
-		
+
 		// init coastalCity
 		SysUserObj coastalCity = initUser("coast", "coast");
 		UserLimits coastalCityLimits = new UserLimits();
 		coastalCityLimits.setAccessPage("/coastalCity201207.jsp");
 		coastalCity.setLimits(coastalCityLimits);
-		
+
 		users.add(coastalCity);
 		
-		// init template test
-		String url = "/templateReport/reportTemplate.jsp?startDate='2012/07/23'&endDate='2012/09/30'&activity_id='01'&activity_name='成都站七月活动'";
-		SysUserObj templateTest = initUser("test", "test");
-		UserLimits templateTestLimits = new UserLimits();
-		templateTestLimits.setAccessPage(url);
-		templateTest.setLimits(templateTestLimits);
-		
-		users.add(templateTest);
-		
+		try {
+			// init template test
+			String url = "/templateReport/reportTemplate.jsp?startDate=2012/07/23&endDate=2012/09/30&activity_id=01&activity_name="+URLEncoder.encode("成都站七月活动","UTF-8");
+			SysUserObj templateTest = initUser("test", "test");
+			UserLimits templateTestLimits = new UserLimits();
+			templateTestLimits.setAccessPage(url);
+			templateTest.setLimits(templateTestLimits);
+
+			users.add(templateTest);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 

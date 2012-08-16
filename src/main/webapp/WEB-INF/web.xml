@@ -23,6 +23,15 @@
         <filter-name>encodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+<!--    <filter>-->
+<!--    	<filter-name>SessionTimeOutFilter</filter-name>-->
+<!--    	<filter-class>com.chinarewards.report.filter.SessionTimeOutFilter</filter-class>-->
+<!--    </filter>-->
+<!--    <filter-mapping>-->
+<!--    	<filter-name>SessionTimeOutFilter</filter-name>-->
+<!--    	<url-pattern>/*</url-pattern>-->
+<!--    </filter-mapping>-->
+    
 	<servlet>
 		<servlet-name>DailyRevenueChartServlet</servlet-name>
 		<display-name>DailyRevenueChartServlet</display-name>
@@ -63,6 +72,6 @@
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
 	<session-config>
-		<session-timeout>15</session-timeout>
+		<session-timeout>1</session-timeout>
 	</session-config>
 </web-app>

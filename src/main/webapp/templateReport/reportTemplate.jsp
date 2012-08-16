@@ -5,6 +5,8 @@
 	@author weishengshui
 
  --%>
+<%@page import="java.net.URLDecoder"%>
+<%@page import="java.net.URL"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ include file="/include/global.inc.jsp"%>
@@ -41,6 +43,8 @@
 					String endDate=request.getParameter("endDate");
 					String activity_id=request.getParameter("activity_id");
 					String activity_name= request.getParameter("activity_name");
+					activity_name = new String(activity_name.getBytes("ISO-8859-1"),"UTF-8");
+					String url = "";
 			%>
 			<li class="edge_003" onclick="javascript:clickMenu('Layer3');">
 			<h2><%=activity_name %></h2>
@@ -60,7 +64,10 @@
 				target=right>每日每商户报表</a> <rp:np date="20120726" /><br />
 				
 			 -->
-			<a href="<%=ctxRootPath%>/templateReport/totalStatementsTemplate.jsp?startDate=<%=startDate %>&endDate=<%=endDate %>&activity_id=<%=activity_id %>"
+			 <%
+			 	url = ctxRootPath + "/templateReport/totalStatementsTemplate.jsp?startDate="+startDate+"&endDate="+endDate+"&activity_id="+activity_id+"&activity_name="+URLEncoder.encode(activity_name,"UTF-8");
+			 %>
+			<a href="<%=url %>"
 				target=right>总计报表</a> <rp:np date="20120531" /></div>
 
 			</li>

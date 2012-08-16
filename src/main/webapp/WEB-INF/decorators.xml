@@ -9,9 +9,11 @@
 	</decorator>
 	<decorator name="main" page="main.jsp">
 		<pattern>/index.jsp</pattern>
+		<pattern>/login.jsp</pattern>
 		<pattern>/generalreportmenu.jsp</pattern>
 		<pattern>/itreportmenu.jsp</pattern>
 		<pattern>/coastalCity201207.jsp</pattern>
+		<pattern>/templateReport/reportTemplate.jsp</pattern>
 	</decorator>
 	<decorator name="main4" page="main4.jsp">
 		<pattern>/login.jsp</pattern>

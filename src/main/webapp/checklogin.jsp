@@ -10,17 +10,6 @@
 	{
 		String _login = (String) session.getAttribute("Login");
 
-		// login page URL
-		String loginUrl = request.getContextPath() + "/login.jsp";
-		int timeout = 3;
-		
-		/**
-		String requestUrl = request.getRequestURL().toString();
-		if (request.getQueryString() != null) {
-			requestUrl += "?" + request.getQueryString();
-		}
-		**/
-
 		if (_login == null || !"OK".equals(_login)) {
 
 			// send a redirect.

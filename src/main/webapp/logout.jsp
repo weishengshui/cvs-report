@@ -28,6 +28,6 @@ if(parent.document.getElementById('mainframe').cols!="100%,0%")
   parent.document.getElementById('mainframe').cols="100%,0%";
 }
 </script>
-Go back to the <a href="index.jsp">login</a> page.
+Go back to the <a href="<%=request.getContextPath() %>/login.jsp">login</a> page.
 </body>
 </html>

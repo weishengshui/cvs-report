@@ -28,17 +28,17 @@ public class PosnetDb {
 			// 驱动的名称
 			Class.forName("com.mysql.jdbc.Driver");
 			// test system
-			 String user = "root";
-			 String passwd = "123456";
-			 String ip = "192.168.4.240";
-			 String strDBname = "mock_test_1";
+//			 String user = "root";
+//			 String passwd = "123456";
+//			 String ip = "192.168.4.240";
+//			 String strDBname = "mock_test_1";
 			 
 			// production system
-//			String user = "report";
-//			String passwd = "posnet";
-//			//String ip = "10.1.1.99";
-//			String ip = "119.146.223.2";
-//			String strDBname = "posnet";
+			String user = "report";
+			String passwd = "posnet";
+			//String ip = "10.1.1.99";
+			String ip = "119.146.223.2";
+			String strDBname = "posnet";
 			conn = DriverManager.getConnection("jdbc:mysql://" + ip + "/"
 					+ strDBname + "?user=" + user + "&password=" + passwd + "");// 访问的数据库的帐号密码
 		} catch (Exception e) {

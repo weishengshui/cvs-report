@@ -34,125 +34,20 @@
 	margin-top: -100px;
 }
 </style>
-
+<script language="JavaScript"> 
+if (window != top) 
+top.location.href = location.href; 
+</script> 
 </head>
 
 <body>
 
-<script>
-	if (parent.document.getElementById('mainframe').cols != "20%,80%") {
-		parent.document.getElementById('mainframe').cols = "20%,80%";
-	}
-	parent.document.getElementById('right').src = "empty.jsp";
-</script>
-<%
-	// check if the password is correct.
-	if (request.getParameter("Name") != null
-			&& request.getParameter("Password") != null) {
 
-		String name = request.getParameter("Name");
-		String password = request.getParameter("Password");
-
-		logger.info("!Login attempt detected. Username={}, IP={}",
-				new String[] { name, request.getRemoteAddr() });
-
-		// login using authentication client
-		/*
-		AuthServiceProvider asp = null;
-		try {
-			
-			asp = new AuthServiceProvider();
-			asp.authenticate(name, password);
-			
-			logger.info("User {} logged in from ", new String[] {
-					name, request.getRemoteAddr()
-			});
-			
-		} catch (AuthenticateUserIsNotExistsException e) {
-			logger.debug("User {} not found", name);
-		} catch (AuthenticatePasswordErrorException e) {
-			logger.debug("Password for user {} not correct", name);
-		} catch (AccessLockedException e) {
-			logger.debug("User {} is locked from access", name);
-		} catch (IllegalStateException e) {
-			logger.debug("User {} illegal state", name);
-		} catch (Throwable e) {
-			logger.error("Unknown error during login", e);
-		} finally {
-			if (asp != null) {
-				asp.destroy();
-			}
-		}
-		 */
-
-		SysUsers sysUsers = SysUsers.getInstance();
-
-		try {
-			SysUserObj user = sysUsers.chickingUser(name, password);
-
-			session.setAttribute("Login", "OK"); // set to logged in.
-			session.setAttribute("User", user);
-
-			// determine the next URL to visit.
-			String url = request.getContextPath() + "/index.jsp";
-
-			//if (returnUrl != null) {
-			//	url = returnUrl;
-			//}
-
-			response.sendRedirect(url);
-		} catch (InvalidUserException e) {
-			out.println("登录错误，请输入正确名称</br></br>");
-		}
-
-		/**
-		 // the hard-coded password.
-		 if (name.equals("china-rewards") && password.equals("123456")) {
-		 // ok, redirect to index.
-		 session.setAttribute("Login", "OK"); // set to logged in.
-		 session.setAttribute("User", name);
-
-		 // determine the next URL to visit.
-		 String url = request.getContextPath() + "/index.jsp";
-
-		 //if (returnUrl != null) {
-		 //	url = returnUrl;
-		 //}
-
-		 response.sendRedirect(url);
-		 return;
-
-		 } else if (name.equals("pc") && password.equals("123456")) {
-		 // ok, redirect to index.
-		 session.setAttribute("Login", "OK"); // set to logged in.
-		 session.setAttribute("User", name);
-
-		 // determine the next URL to visit.
-		 String url = request.getContextPath() + "/index.jsp";
-		 //if (returnUrl != null) {
-		 //	url = returnUrl;
-		 //}
-
-		 response.sendRedirect(url);
-		 return;
-
-		 } else {
-		 out.println("登录错误，请输入正确名称</br></br>");
-		 }
-		 **/
-	}
-%>
 <div id="centerpoint">
 <div id="dialog">
 <center>
 <h2>Welcome to China Rewards Report Application</h2>
-<script>
-	if (parent.document.getElementById('mainframe').cols != "100%,0%") {
-		parent.document.getElementById('mainframe').cols = "100%,0%";
-
-	}
-</script>
-<form action="login.jsp" method="POST">
+<form action="login.jsp?cmd=1" method="POST">
 <table>
 	<tr>
 		<td style="text-align: right">Login Name:</td>
@@ -174,5 +69,38 @@
 </center>
 </div>
 </div>
+<%
+	//first enter this page
+	String cmd = request.getParameter("cmd");
+	if(cmd==null){
+		return;
+	}
+	// check if the password is correct.
+	if (request.getParameter("Name") != null
+			&& request.getParameter("Password") != null) {
+
+		String name = request.getParameter("Name");
+		String password = request.getParameter("Password");
+
+		logger.info("!Login attempt detected. Username={}, IP={}",
+				new String[] { name, request.getRemoteAddr() });
+
+		SysUsers sysUsers = SysUsers.getInstance();
+
+		try {
+			SysUserObj user = sysUsers.chickingUser(name, password);
+
+			session.setAttribute("Login", "OK"); // set to logged in.
+			session.setAttribute("User", user);
+			
+			response.sendRedirect(request.getContextPath()+ "/index.html");
+			
+
+		} catch (InvalidUserException e) {
+			out.println("登录错误，请输入正确名称<br><br>");
+		}
+
+	}
+%>
 </body>
 </html>

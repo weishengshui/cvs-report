@@ -16,7 +16,6 @@ import com.chinarewards.report.db.impl.PosnetDb;
 
 public class ReportTemplateService {
 
-	private Logger log = LoggerFactory.getLogger(getClass());
 	
 	//根据交易类型的总计报表。比如：礼品总数200,、优惠总数320
 	public  List<Object> getTotalStatements(
@@ -67,7 +66,6 @@ public class ReportTemplateService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e.getMessage());
 			return null;
 		} finally {
 			if (db != null) {
@@ -158,7 +156,6 @@ public class ReportTemplateService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e.getMessage());
 			return null;
 		} finally {
 			if (db != null) {
@@ -226,7 +223,6 @@ public class ReportTemplateService {
 			return null;
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error(e.getMessage());
 			return null;
 		} finally {
 			if (db != null) {
@@ -337,26 +333,32 @@ public class ReportTemplateService {
 
 	public List<String> getExchangeTypes(String activity_id) throws Exception {
 		
-		PosnetDb db = new PosnetDb();
-		db.OpenConn();
-		ResultSet rs = null;
-		String exchangeTypesSql = "select m.exchangeType from Merchant m, Activitymerchant am where am.activity_id='"
-				+ activity_id
-				+ "' and am.merchant_id=m.id group  by m.exchangeType  desc";
-		List<String> exchangeTypeLists = new ArrayList<String>();
-		rs = db.executeQuery(exchangeTypesSql);
-		
-		System.out.println("get exchange Types with activity_id="+activity_id+" SQL: " + exchangeTypesSql);
-		
-		while (rs.next()) {
-			exchangeTypeLists.add(rs.getString(1));
+		PosnetDb db = null;
+		try {
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			String exchangeTypesSql = "select m.exchangeType from Merchant m, Activitymerchant am where am.activity_id='"
+					+ activity_id
+					+ "' and am.merchant_id=m.id group  by m.exchangeType  desc";
+			List<String> exchangeTypeLists = new ArrayList<String>();
+			rs = db.executeQuery(exchangeTypesSql);
+			
+			System.out.println("get exchange Types with activity_id="+activity_id+" SQL: " + exchangeTypesSql);
+			
+			while (rs.next()) {
+				exchangeTypeLists.add(rs.getString(1));
+			}
+			db.closeConn();
+			rs.close();
+			if (exchangeTypeLists.size() != 0) {
+				return exchangeTypeLists;
+			}
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		db.closeConn();
-		rs.close();
-		if (exchangeTypeLists.size() != 0) {
-			return exchangeTypeLists;
-		}
-		return null;
 	}
 	
 	private int getDaysBetween(java.util.Calendar d1, java.util.Calendar d2) {

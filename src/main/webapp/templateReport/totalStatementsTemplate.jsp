@@ -155,6 +155,7 @@ function checkDate(){
 	final Font font = new Font("宋体", Font.PLAIN, 15);
 	String fileName = "";
 	DefaultCategoryDataset dataset = null;
+	DefaultCategoryDataset amountDataset = null;
 	JFreeChart chart = null;
 
 	try {
@@ -163,6 +164,7 @@ function checkDate(){
 			out.println("<br><br>没有数据可显示<br><br>");
 		}else{
 			
+		
 		//总计报表
 		if (totalStatements == null) {
 			out.println("没有数据可显示");
@@ -186,6 +188,7 @@ function checkDate(){
 
 		out.println("<br><br>");
 
+		
 		j = 1;
 		int exchangeTypesCount = exchangeTypes.size();
 		//每日报表
@@ -204,16 +207,19 @@ function checkDate(){
 			out.println("<td align='center'>Weekday / " + "<br>"
 					+ "WK.of Yr.</td>");
 			printExchangeTypeTitle(exchangeTypes, out);
+			out.println("<td>消费总金额</td>");
 			out.println("</tr>");
 			Set<String> days = totalStatementsEveryDay.keySet();
 
 			//生成表格及折线图
 			dataset = new DefaultCategoryDataset();
+			amountDataset = new DefaultCategoryDataset();
 			List<String> predayStatementList = new ArrayList<String>(
 					days);
 			int predayRecordsCount = predayStatementList.size();
 			//每几天统计一次
 			int index = (predayRecordsCount - 1) / 10 + 1;
+			double[] totalcountwithType = new double[exchangeTypesCount+1];
 			for (int i = 0, dayIndex = 0; i < predayRecordsCount; i++) {
 
 				out.println("<tr>");
@@ -260,8 +266,13 @@ function checkDate(){
 				List<Object> aRecordForAmount = totalStatementsEveryDay
 						.get(day_table);
 				for (int k = 0; k < aRecordForAmount.size(); k++) {
-					int count = (Integer) aRecordForAmount.get(k);
-					out.println("<td>" + count + "</td>");
+						double count = (Double) aRecordForAmount.get(k);
+						totalcountwithType[k]+=count;
+						if(k != aRecordForAmount.size()-1){
+							out.println("<td>" + (int)count + "</td>");
+						}else{
+						out.println("<td>" + count + "</td>");
+						}
 				}
 				out.println("</tr>");
 
@@ -269,31 +280,31 @@ function checkDate(){
 				//某一时间段内，各种交易的数量
 				if (dayIndex >= predayRecordsCount) {
 				} else {
-					int[] tmpExCount = new int[exchangeTypesCount];
+					double[] tmpExCount = new double[exchangeTypesCount+1];
 					String day = "";
 					String sday = predayStatementList.get(dayIndex);
-					day = sday.substring(5, 10) + "-";
+					day = sday.substring(5, 10);
 					List<Object> daycount = totalStatementsEveryDay
 							.get(sday);
 					for (int countIndex = 0; countIndex < daycount
 							.size(); countIndex++) {
-						tmpExCount[countIndex] += (Integer) daycount
-								.get(countIndex);
+							tmpExCount[countIndex] += (Double) daycount
+							.get(countIndex);
 					}
 					if (index > 1) {
 						String eday = predayStatementList.get(dayIndex
 								+ index - 1);
 						if (sday.subSequence(5, 7).equals(
 								eday.subSequence(5, 7))) {
-							day += eday.substring(8, 10);
+							day += "-" + eday.substring(8, 10);
 						} else {
-							day += eday.substring(5, 10);
+							day += "-" + eday.substring(5, 10);
 						}
 						daycount = totalStatementsEveryDay.get(eday);
 						for (int countIndex = 0; countIndex < daycount
 								.size(); countIndex++) {
-							tmpExCount[countIndex] += (Integer) daycount
-									.get(countIndex);
+								tmpExCount[countIndex] += (Double) daycount
+								.get(countIndex);
 						}
 					}
 					for (int k = 1; k < index - 1; k++) {
@@ -302,13 +313,16 @@ function checkDate(){
 						daycount = totalStatementsEveryDay.get(tday);
 						for (int countIndex = 0; countIndex < daycount
 								.size(); countIndex++) {
-							tmpExCount[countIndex] += (Integer) daycount
-									.get(countIndex);
+								tmpExCount[countIndex] += (Double)daycount.get(countIndex);
 						}
 					}
-					for (int k = 0; k < exchangeTypesCount; k++) {
-						dataset.addValue(tmpExCount[k],
+					for (int k = 0; k < exchangeTypesCount+1; k++) {
+						if(k==exchangeTypesCount){
+							amountDataset.addValue(tmpExCount[k],day,day);							
+						}else{
+							dataset.addValue(tmpExCount[k],
 								exchangeTypes.get(k), day);
+						}
 					}
 					dayIndex += index;
 					if (predayRecordsCount - dayIndex < index) {
@@ -318,6 +332,16 @@ function checkDate(){
 				}
 
 			}
+			out.println("<tr>");
+			out.println("<td colspan='3' align='center'>总计</td>");
+			for(int i=0;i<exchangeTypesCount+1;i++){
+				if(i==exchangeTypesCount){
+				out.println("<td>"+new DecimalFormat("0.00").format(totalcountwithType[i])+"</td>");
+				}else{
+					out.println("<td>"+(int)totalcountwithType[i]+"</td>");
+				}
+			}
+			out.println("</tr>");
 			out.println("</table>");
 			chart = ChartFactory.createLineChart(activity_name
 					+ "----按日统计", "日期", "交易数量", dataset,
@@ -325,21 +349,40 @@ function checkDate(){
 			setLineChartProperties(chart, font);
 			fileName = ServletUtilities.saveChartAsPNG(chart, 800, 600,
 					session);
-			days.clear();
-			totalStatementsEveryDay.clear();
-		}
+			
+		
 %>
 <br>
 <table>
 	<tr>
-		<td><img alt=""
+		<td>
+		<br>
+		<img alt=""
 			src="<%=ctxRootPath%>/servlet/DisplayChart?filename=<%=fileName%>">
+		<br>
+		</td>
+	</tr>
+	<%
+	 chart = ChartFactory.createBarChart3D(activity_name+"----按日统计","","金额",amountDataset,PlotOrientation.VERTICAL,false,false,false);
+	setBarChartProperties(chart,font);
+	fileName = ServletUtilities.saveChartAsPNG(chart, 800, 600,
+			session);
+	
+	%>
+	<tr>
+		<td>
+		<br>
+		<img alt=""
+			src="<%=ctxRootPath%>/servlet/DisplayChart?filename=<%=fileName%>">
+		<br>
 		</td>
 	</tr>
 </table>
 <%
+	}
 	out.println("<br><br>");
 
+		
 		//商户总计报表，根据交易的类型进行分类
 		for(Iterator<String> it = exchangeTypes.iterator();it.hasNext();){
 			j=1;
@@ -358,10 +401,11 @@ function checkDate(){
 				out.println("</tr>");
 				
 				//消费金额图
-				DefaultCategoryDataset amountDataset = null;
+				amountDataset =null;
 				//交易数量图
 				dataset = null;
 				
+				double[] totalCount = new double[3];
 				if(merchantSet.size()>5){
 					amountDataset = new DefaultCategoryDataset();
 					dataset = new DefaultCategoryDataset();
@@ -371,16 +415,20 @@ function checkDate(){
 						List<Object> countAmountList = merchantStatementsWithType.get(merchant);
 						int count = (Integer)countAmountList.get(0);
 						double amount = (Double)countAmountList.get(1);
-						amountDataset.addValue(amount,"",merchant);
-						dataset.addValue(count,"",merchant);
+						totalCount[0] +=count;
+						totalCount[1] += amount;
+						amountDataset.addValue(amount,merchant,merchant);
+						dataset.addValue(count,merchant,merchant);
 						Map<String,Integer> posMap = (Map<String,Integer>)countAmountList.get(2);
-						Set<String> posSet = posMap.keySet();
 						out.println("<td>"+(j++)+"</td>");
 						out.println("<td>"+merchant+"</td>");
 						out.println("<td>"+count+"</td>");
 						out.println("<td>"+amount+"</td>");
 						out.println("<td>");
+						Set<String> posSet = posMap.keySet();
+						if(posSet != null || posSet.size() >0){
 						for(Iterator<String> it3 = posSet.iterator();;){
+							totalCount[2]+=1;
 							String posid = it3.next();
 							int posCount = (Integer)posMap.get(posid);
 							out.println(posid+" | "+exchangeType+" | "+posCount);
@@ -389,6 +437,7 @@ function checkDate(){
 							}else{
 								break;
 							}
+						}
 						}
 						out.println("</td>");
 						out.println("</tr>");
@@ -400,44 +449,57 @@ function checkDate(){
 					List<Object> countAmountList = merchantStatementsWithType.get(merchant);
 					int count = (Integer)countAmountList.get(0);
 					double amount = (Double)countAmountList.get(1);
+					totalCount[0] +=count;
+					totalCount[1] += amount;
 					Map<String,Integer> posMap = (Map<String,Integer>)countAmountList.get(2);
-					Set<String> posSet = posMap.keySet();
+					
 					out.println("<td>"+(j++)+"</td>");
 					out.println("<td>"+merchant+"</td>");
 					out.println("<td>"+count+"</td>");
 					out.println("<td>"+amount+"</td>");
 					out.println("<td>");
-					for(Iterator<String> it3 = posSet.iterator();;){
-						String posid = it3.next();
-						int posCount = (Integer)posMap.get(posid);
-						out.println(posid+" | "+exchangeType+" | "+posCount);
-						if(it3.hasNext()){
-							out.println("<br>");
-						}else{
-							break;
+					Set<String> posSet = posMap.keySet();
+					if(posSet != null || posSet.size() >0){
+						for(Iterator<String> it3 = posSet.iterator();;){
+							totalCount[2]+=1;
+							String posid = it3.next();
+							int posCount = (Integer)posMap.get(posid);
+							out.println(posid+" | "+exchangeType+" | "+posCount);
+							if(it3.hasNext()){
+								out.println("<br>");
+							}else{
+								break;
+							}
 						}
-					}
+						}
 					out.println("</td>");
 					out.println("</tr>");
 				}
 				}
+				out.println("<tr>");
+				out.println("<td colspan='2' align='center'>总计</td>");
+				out.println("<td>"+(int)totalCount[0]+"</td>");
+				out.println("<td>"+ new DecimalFormat("0.00").format(totalCount[1]) +"</td>");
+				out.println("<td>共 "+(int)totalCount[2]+" 台POS机</td>");
+				out.println("</tr>");
 				out.println("</table>");
 				if(dataset!=null && amountDataset!=null){
+					int x_length = (merchantStatementsWithType.size()*35<800)?800:merchantStatementsWithType.size()*35;
 					chart = ChartFactory.createBarChart3D(activity_name+"("+exchangeType+")","","金额",amountDataset,PlotOrientation.VERTICAL,false,false,false);
 					setBarChartProperties(chart,font);
-					fileName = ServletUtilities.saveChartAsPNG(chart,merchantStatementsWithType.size()*35,600,session);
+					fileName = ServletUtilities.saveChartAsPNG(chart,x_length,600,session);
 					chart = ChartFactory.createBarChart3D(activity_name+"("+exchangeType+")","","交易数量",dataset,PlotOrientation.VERTICAL,false,false,false);
-					System.out.println("count chart :"+chart);
 					setBarChartProperties(chart,font);
-					String filename2 = ServletUtilities.saveChartAsPNG(chart,merchantStatementsWithType.size()*35,600,session);
+					String filename2 = ServletUtilities.saveChartAsPNG(chart,x_length,600,session);
 					%>
-					<br>
+						<br>
 						<table>
 							<tr>
 								<td><br><img alt=""
 									src="<%=ctxRootPath%>/servlet/DisplayChart?filename=<%=fileName%>"><br>
 								</td>
 							</tr>
+					
 							<tr>
 								<td><br><img alt=""
 									src="<%=ctxRootPath%>/servlet/DisplayChart?filename=<%=filename2%>"><br>
@@ -481,19 +543,20 @@ function checkDate(){
 		legendTitle.setItemFont(font);
 	}%>
 <%!public void setBarChartProperties(JFreeChart chart, Font font) {
-		CategoryPlot plot = chart.getCategoryPlot();
-		chart.getTitle().setFont(font);
-		Axis x_Axis = plot.getDomainAxis();
-		x_Axis.setLabelFont(font);
-		x_Axis.setTickLabelFont(font);
-		CategoryAxis categoryAxis = plot.getDomainAxis();
-		categoryAxis.setCategoryLabelPositions(CategoryLabelPositions
-				.createUpRotationLabelPositions(Math.PI / 5));
-		plot.setDomainAxis(categoryAxis);
-		Axis y_Axis = plot.getRangeAxis();
-		y_Axis.setLabelFont(font);
-		y_Axis.setTickLabelFont(font);
-		y_Axis.setLabelAngle(Math.PI * 0.5);
+	chart.getTitle().setFont(font);
+	CategoryPlot categoryPlot = chart.getCategoryPlot();
+	Axis x_axis = categoryPlot.getDomainAxis();
+	x_axis.setLabelFont(font);
+	x_axis.setTickLabelFont(font);
+	
+	CategoryAxis domainAxis = categoryPlot.getDomainAxis();
+	domainAxis.setCategoryLabelPositions(CategoryLabelPositions.createUpRotationLabelPositions(Math.PI/5));
+	categoryPlot.setDomainAxis(domainAxis);
+	
+	Axis y_axis = categoryPlot.getRangeAxis();
+	y_axis.setLabelFont(font);
+	y_axis.setTickLabelFont(font);
+	y_axis.setLabelAngle(Math.PI*0.5);
 	}%>
 </body>
 </html>

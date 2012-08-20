@@ -1,6 +1,7 @@
 package com.chinarewards.report.template;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -9,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.chinarewards.report.db.impl.PosnetDb;
 
+/**
+ * 
+ * @author weishengshui
+ *
+ */
 public class ReportTemplateService {
 
 	
@@ -112,13 +116,12 @@ public class ReportTemplateService {
 				
 				//查询数据库，往表里面插数据
 				for (int i=0;i<typeCount+1;i++) {
-					if(i==typeCount){
-						StringBuffer statementsPreDaySql = new StringBuffer("select date_format(ts,'%Y/%m/%d') as '日期' , sum(consumeAmount)  from QQMeishiXaction ");
-						statementsPreDaySql = concatLimitTime(statementsPreDaySql, "ts", startDate, endDate);
-						statementsPreDaySql.append("and  xactResultCode = '0' and  posid in (select am.posid from  Activitymerchant am, Merchant m where am.merchant_id=m.id "+
-								" and am.activity_id='"+
+					if(i==typeCount){//消费金额
+						StringBuffer statementsPreDaySql = new StringBuffer("select date_format(mshi1.ts,'%Y/%m/%d') as '日期' , sum(mshi1.consumeAmount)  from QQMeishiXaction  mshi1,Activitymerchant am, Merchant m  ");
+						statementsPreDaySql = concatLimitTime(statementsPreDaySql, "mshi1.ts", startDate, endDate);
+						statementsPreDaySql.append(" and am.merchant_id=m.id  and am.activity_id='" +
 								activity_id
-								+"') group by year(ts),month(ts),day(ts)");
+								+"' and  mshi1.xactResultCode = '0' and  mshi1.posid  = am.posid and m.exchangeType!='礼品' group by year(mshi1.ts),month(mshi1.ts),day(mshi1.ts)" );
 						rs = db.executeQuery(statementsPreDaySql.toString());
 						System.out.println("------Get total statements sum(consumeAmount) for everyday  with activity_id="+activity_id+" SQL: "+statementsPreDaySql.toString());
 						while(rs.next()){
@@ -130,13 +133,13 @@ public class ReportTemplateService {
 						}
 					}else{
 					String exchangeType = (String) exchangeTypeLists.get(i);
-					StringBuffer statementsPreDaySql = new StringBuffer("select date_format(ts,'%Y/%m/%d') as '日期' , count(*) from QQMeishiXaction ");
+					StringBuffer statementsPreDaySql = new StringBuffer("select date_format(mshi1.ts,'%Y/%m/%d') as '日期' , count(*) from QQMeishiXaction  mshi1,Activitymerchant am, Merchant m  ");
 					statementsPreDaySql = concatLimitTime(statementsPreDaySql, "ts", startDate, endDate);
-					statementsPreDaySql.append("and  xactResultCode = '0' and  posid in (select am.posid from  Activitymerchant am, Merchant m where am.merchant_id=m.id and m.exchangeType='"+
-							exchangeType
-							+"' and am.activity_id='"+
-							activity_id
-							+"') group by year(ts),month(ts),day(ts)");
+					statementsPreDaySql.append(" and am.merchant_id=m.id and m.exchangeType='" +
+							exchangeType +
+							"' and am.activity_id='" +
+							activity_id +
+							"' and  mshi1.xactResultCode = '0' and  mshi1.posid  = am.posid group by year(mshi1.ts),month(mshi1.ts),day(mshi1.ts)");
 					rs = db.executeQuery(statementsPreDaySql.toString());
 					System.out.println("------Get total statements for everyday with activity_id="+activity_id+" and exchangeType="+exchangeType+" SQL: "+statementsPreDaySql.toString());
 					while(rs.next()){
@@ -191,7 +194,7 @@ public class ReportTemplateService {
 					activity_id
 					+"' and m1.exchangeType='"+
 					exchangeType
-					+"' group by am1.merchant_id ");
+					+"' group by m1.id ");
 			
 			rs = db.executeQuery(statementsPreMerchantWithTypeSql.toString());
 			System.out.println("------Get total statements for merchant with activity_id="+activity_id+" and exchangeType="+exchangeType+" SQL: "+statementsPreMerchantWithTypeSql.toString());
@@ -232,7 +235,179 @@ public class ReportTemplateService {
 		
 	}
 	
-
+	//通过二维码即验证码获取一条交易记录的部分信息
+	public List<String> getExchangeRecordByToken(String token, String activity_id){
+		
+		PosnetDb db = null;
+		try {
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			List<String> aRecord = new ArrayList<String>();
+			StringBuffer getExcRecordSql = new StringBuffer(
+							" select m1.merchant_name as 商家名称,a1.posid as POS机编号,mshi.qqUserToken as 验证码,mshi.consumeAmount as 消费金额, " +
+							" mshi.ts as 交易时间  from Merchant m1,Activitymerchant a1,QQMeishiXaction mshi " +
+							" where mshi.qqUserToken ='" +
+							token
+							+"' and a1.activity_id = '" +
+							activity_id
+							+"' and mshi.xactResultCode = '0' and mshi.posid = a1.posid and a1.merchant_id = m1.id ");
+					rs = db.executeQuery(getExcRecordSql.toString());
+					System.out.println("------Get a exchange record by token="+token+" SQL: "+getExcRecordSql.toString());
+					ResultSetMetaData rsmd = rs.getMetaData();
+					int columnCount = rsmd.getColumnCount();
+					if(rs.next()){
+						for(int i=1;i<=columnCount;i++){
+							aRecord.add(rs.getString(i));
+						}
+					}
+				return aRecord;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (db != null) {
+				db.closeConn();
+			}
+		}
+	}
+	
+	//获取某次活动的商户列表Map<K, V>对应 <Merchant_ID, Merchant_NAME>
+	public Map<String,String> getMerchantList(String activity_id){
+		
+		PosnetDb db = null;
+		try {
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			Map<String,String> merchantLists = new TreeMap<String, String>();
+			StringBuffer merchantListsSql = new StringBuffer(
+							" select m1.id as 商户编号, " +
+							" m1.merchant_name as 商户名称  " +
+							" from Merchant m1 where  m1.id in (select a1.merchant_id  from Activitymerchant a1  where a1.activity_id = '" +
+							activity_id+
+							"') order by m1.id asc" 
+							);
+					rs = db.executeQuery(merchantListsSql.toString());
+					System.out.println("------Get merchant lists by activity_id="+activity_id+" SQL: "+merchantListsSql.toString());
+					while(rs.next()){
+						String merchantId = rs.getString(1);
+						String merchantName = rs.getString(2);
+						merchantLists.put(merchantId, merchantName);
+					}
+					if(merchantLists.size()==0){
+						return null;
+					}
+				return merchantLists;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (db != null) {
+				db.closeConn();
+			}
+		}
+	}
+	
+	//获取某个商户或所有商户的总交易记录数
+	public int getDetailRecordesCount(String startDate, String endDate, String shopId, String activity_id){
+		
+		PosnetDb db = null;
+		try {
+			Calendar toDate = getEndDate(startDate, endDate);
+			if (toDate == null) {
+				return 0;
+			}
+			endDate = calendarToStringFormatDate(toDate);
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			StringBuffer sql = new StringBuffer();
+			sql.append("select count(*) as 数据总量  from QQMeishiXaction mshi  ");
+			sql = concatLimitTime(sql, "mshi.ts", startDate, endDate);
+			sql.append(" and mshi.xactResultCode = '0'  and mshi.posid in ");
+			if(shopId.equals("all")){//返回所有商户的交易记录数
+				sql.append(" ( select a1.posid from Merchant m1,Activitymerchant a1 where m1.id=a1.merchant_id and a1.activity_id='" +
+				activity_id
+				+"') ");
+			}else{//返回指定商户的交易记录数
+				sql.append(" ( select a1.posid from Merchant m1,Activitymerchant a1 where m1.id=a1.merchant_id and m1.id='" +
+						shopId +
+						"') ");
+			}
+			rs = db.executeQuery(sql.toString());
+			System.out.println("------Get Detail Recordes Count SQL: "+sql.toString());
+			if(rs.next()){
+				return rs.getInt(1);
+			}
+			return 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		} finally {
+			if (db != null) {
+				db.closeConn();
+			}
+		}
+	}
+	
+	//获取商户的明细列表
+	public List<List<String>> getDetailRecordsLists(String startDate, String endDate, String activity_id, String shopId, int pageIndex, int pageSize){
+		
+		PosnetDb db = null;
+		try {
+			Calendar toDate = getEndDate(startDate, endDate);
+			if (toDate == null) {
+				return null;
+			}
+			endDate = calendarToStringFormatDate(toDate);
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			StringBuffer sql = new StringBuffer();
+			sql.append("select m1.merchant_name as 商家名称,a1.posid as POS机编号,mshi.qqUserToken as 验证码,mshi.consumeAmount as 消费金额,mshi.ts as 交易时间 " +
+					" from Merchant m1,Activitymerchant a1,QQMeishiXaction mshi  ");
+			sql = concatLimitTime(sql, "mshi.ts", startDate, endDate);
+			sql.append(" and a1.activity_id = '" +
+					activity_id +
+					"'  and a1.merchant_id = m1.id and mshi.posid = a1.posid and mshi.xactResultCode = '0'");
+			if(!shopId.equals("all")){//返回所有商户的交易记录数
+				sql.append(" and m1.id = '" +
+						shopId 
+						+"' ");
+			}
+			sql.append("order by mshi.ts desc, m1.id asc  limit " +
+					pageIndex +
+					"," +
+					pageSize +
+					"");
+			rs = db.executeQuery(sql.toString());
+			System.out.println("------Get Detail Records Lists SQL: "+sql.toString());
+			List<List<String>> records = new ArrayList<List<String>>();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnCount = rsmd.getColumnCount();
+			while(rs.next()){
+				List<String> record = new ArrayList<String>();
+				for(int i=1;i<=columnCount;i++){
+					record.add(rs.getString(i));
+				}
+				records.add(record);
+			}
+			if(records.size()>0){
+				return records;
+			}
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (db != null) {
+				db.closeConn();
+			}
+		}
+		
+	}
+	
 	private Calendar getEndDate(String startDate, String endDate) {
 
 		Calendar fromday = stringFormatDateToCalendar(startDate);

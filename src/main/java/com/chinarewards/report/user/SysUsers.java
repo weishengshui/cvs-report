@@ -23,9 +23,10 @@ public class SysUsers {
 	}
 
 	private void initUsers() {
-
+		
+		
 		users = new ArrayList<SysUserObj>();
-
+		String url="";
 		// init chinawards
 		SysUserObj chinarewards = initUser("china-rewards", "123456");
 		UserLimits crlimits = new UserLimits();
@@ -61,17 +62,35 @@ public class SysUsers {
 
 		users.add(adidas);
 
-		// init coastalCity
-		SysUserObj coastalCity = initUser("coast", "coast");
-		UserLimits coastalCityLimits = new UserLimits();
-		coastalCityLimits.setAccessPage("/coastalCity201207.jsp");
-		coastalCity.setLimits(coastalCityLimits);
-
-		users.add(coastalCity);
+//		 init coastalCity
+//		SysUserObj coastalCity = initUser("coast", "coast");
+//		UserLimits coastalCityLimits = new UserLimits();
+//		coastalCityLimits.setAccessPage(url);
+//		coastalCity.setLimits(coastalCityLimits);
+//
+//		users.add(coastalCity);
+		
 		
 		try {
+			// init coastalCity
+			url = "/templateReport/reportTemplate.jsp?startDate=2012/07/26&endDate=2012/10/25&activity_id=01&activity_name="+URLEncoder.encode("海岸城七月活动","UTF-8")+"&username=coast";
+			SysUserObj coastalCity = initUser("coast", "coast");
+			UserLimits coastalCityLimits = new UserLimits();
+			coastalCityLimits.setAccessPage(url);
+			coastalCity.setLimits(coastalCityLimits);
+
+			users.add(coastalCity);
+			
+			// init chengdu
+			url = "/templateReport/reportTemplate.jsp?startDate=2012/08/30&endDate=2012/09/30&activity_id=02&activity_name="+URLEncoder.encode("成都站七月活动","UTF-8")+"&username=chengdu";
+			SysUserObj chengDu = initUser("chengdu", "chengdu");
+			UserLimits chengDuLimits = new UserLimits();
+			chengDuLimits.setAccessPage(url);
+			chengDu.setLimits(chengDuLimits);
+
+			users.add(chengDu);
 			// init template test
-			String url = "/templateReport/reportTemplate.jsp?startDate=2012/07/23&endDate=2012/09/30&activity_id=01&activity_name="+URLEncoder.encode("成都站七月活动","UTF-8");
+			url = "/templateReport/reportTemplate.jsp?startDate=2012/07/23&endDate=2012/09/30&activity_id=01&activity_name="+URLEncoder.encode("用于测试","UTF-8")+"&username=test";
 			SysUserObj templateTest = initUser("test", "test");
 			UserLimits templateTestLimits = new UserLimits();
 			templateTestLimits.setAccessPage(url);

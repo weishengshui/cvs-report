@@ -1,8 +1,11 @@
 package com.chinarewards.report.user;
 
 import java.net.URLEncoder;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.chinarewards.report.db.impl.PosnetDb;
 
 public class SysUsers {
 
@@ -70,10 +73,21 @@ public class SysUsers {
 //
 //		users.add(coastalCity);
 		
-		
+		PosnetDb db = null;
 		try {
+			db = new PosnetDb();
+			db.OpenConn();
+			ResultSet rs = null;
+			String activity_id = "01";
+			String sql = " select activity_name from Activity where id=";
+
+			
 			// init coastalCity
-			url = "/templateReport/reportTemplate.jsp?startDate=2012/07/26&endDate=2012/10/25&activity_id=01&activity_name="+URLEncoder.encode("海岸城七月活动","UTF-8")+"&username=coast";
+			rs = db.executeQuery(sql+activity_id);
+			rs.next();
+			url = "/templateReport/reportTemplate.jsp?startDate=2012/07/26&endDate=2012/10/25&activity_id=" +
+					activity_id +
+					"&activity_name="+URLEncoder.encode(rs.getString(1),"UTF-8")+"&username=coast";
 			SysUserObj coastalCity = initUser("coast", "coast");
 			UserLimits coastalCityLimits = new UserLimits();
 			coastalCityLimits.setAccessPage(url);
@@ -82,7 +96,12 @@ public class SysUsers {
 			users.add(coastalCity);
 			
 			// init chengdu
-			url = "/templateReport/reportTemplate.jsp?startDate=2012/08/30&endDate=2012/09/30&activity_id=02&activity_name="+URLEncoder.encode("成都站七月活动","UTF-8")+"&username=chengdu";
+			activity_id="02";
+			rs = db.executeQuery(sql+activity_id);
+			rs.next();
+			url = "/templateReport/reportTemplate.jsp?startDate=2012/08/30&endDate=2012/09/30&activity_id=" +
+					activity_id +
+					"&activity_name="+URLEncoder.encode(rs.getString(1),"UTF-8")+"&username=chengdu";
 			SysUserObj chengDu = initUser("chengdu", "chengdu");
 			UserLimits chengDuLimits = new UserLimits();
 			chengDuLimits.setAccessPage(url);
@@ -100,6 +119,10 @@ public class SysUsers {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			if(db!=null){
+				db.closeConn();
+			}
 		}
 
 	}

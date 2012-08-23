@@ -1,3 +1,0 @@
-<%
-	String ctxRootPath = request.getContextPath();
-%>
